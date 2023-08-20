@@ -2,5 +2,7 @@
 
 S3method(print,ELP)
 S3method(print,Power)
+S3method(print,SRK.Power)
 export(ELP)
 export(Power)
+export(SRK.Power)
