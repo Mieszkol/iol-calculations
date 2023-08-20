@@ -56,13 +56,17 @@ Power <- function(L, K, A, ELP, Rx = 0, V = 13, which = 'all') {
   
   functions <- names(result)
   function.arguments <- vector(mode = 'character')
-P <- numeric(length(functions))
+P <- numeric(length(L))
 
-for (i in seq_along(functions)) {
-    func_name <- functions[i]
-    P[i] <- result[[func_name]]
-    attr(P, 'parameters')[[func_name]] <- attr(result[[func_name]], 'parameters')
-    function.arguments[[func_name]] <- paste(names(attr(result[[func_name]], 'parameters')), collapse=', ')
+for (i in which) {
+    if (is.null(Power.functions[[i]])) {
+      warning("Unknown Power method requested: ", i, ".")
+      next
+    }
+    fct <- Power.functions[[i]]
+    args <- names(cl) %in% names(formals(fct))
+    args <- as.list(cl)[args]
+    P <- do.call(fct, args)
 }
   names(function.arguments) <- NULL
   attr(P, 'function') <- functions
