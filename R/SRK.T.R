@@ -28,9 +28,7 @@ SRK.T.ELP <- function(L, K=337.5/R, R=337.5/K, ACD, A) {
   #R <- 337.5 / K
   # Corrected axial length (mm)
   LCOR <- L
-  if (L > 24.2) {
-    LCOR <- -3.446 + 1.715 * L - 0.0237 * L * L
-  }
+  LCOR[L > 24.2] <- -3.446 + 1.715 * L[L > 24.2] - 0.0237 * L[L > 24.2] * L[L > 24.2]
   # Computed corneal width (mm)
   Cw <- -5.41 + 0.58412 * LCOR + 0.098 * K
   # Corneal height (mm)
