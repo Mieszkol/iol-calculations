@@ -30,17 +30,20 @@ SRK.T.ELP <- function(L, K=337.5/R, R=337.5/K, ACD, A) {
   LCOR <- L
   LCOR[L > 24.2] <- -3.446 + 1.715 * L[L > 24.2] - 0.0237 * L[L > 24.2] * L[L > 24.2]
   # Computed corneal width (mm)
-  Cw <- -5.41 + 0.58412 * LCOR + 0.098 * K
-  # Corneal height (mm)
-  temp <- R * R - Cw * Cw / 4  
-  if (temp < 0) {
-    warning("Calculation of SRK/T corneal height poorly defined for this combination of corneal curvature and axial length in SRK/T")
-    temp <- 0
-    result <- NA
-    attr(result, 'parameters') <- args
-    return(result)
-  }
-  H <- R - sqrt(temp)
+Cw <- -5.41 + 0.58412 * L2 + 0.098 * K
+# Corneal height (mm)
+temp <- R * R - Cw * Cw / 4  
+
+# Handle cases where temp is less than 0
+negative_temp_indices <- which(temp < 0)
+if (length(negative_temp_indices) > 0) {
+  warning("Calculation of SRK/T corneal height poorly defined for this combination of corneal curvature and axial length in SRK/T")
+  temp[negative_temp_indices] <- 0
+  result[negative_temp_indices] <- NA
+}
+
+# Continue with calculations using temp
+H <- R - sqrt(temp)
   # IOL specific offset
   Offset <- ACD - 3.336
   # Estimated ELP
