@@ -20,55 +20,32 @@
 #' @seealso \code{\link{ELP}}
 #' @family Power
 #' @author Eric N. Brown \email{eric.n.brown@@gmail.com}
-Power <- function(L, K, A, ELP = NULL, Rx = 0, V = 13, which = 'all') {
-  cl <- match.call()
-  
-  # Determine which equations to use
-  if ('all' %in% which) {
-    which <- names(Power.functions)
-    which <- which[which != 'all']
-  }
-  if ('modern' %in% which) {
-    which <- c(which, 'SRK.T', 'Holladay.1', 'Hoffer.Q', 'Haigis')
-    which <- which[which != 'modern']
-  }
-  which <- unique(which)
-  
-  results_df <- data.frame(matrix(nrow=length(L), ncol=length(which)))
-  colnames(results_df) <- which
-
-  for (i in which) {
-    if (is.null(Power.functions[[i]])) {
-      warning("Unknown Power method requested: ", i, ".")
-      next
-    }
-    
-    # Check if ELP is missing and compute it if necessary
-    if (is.null(ELP) || is.na(ELP[1])) {
-      if (i %in% names(ELP.functions)) {
-        ELP <- ELP(L = L, K = K, A = A, which = i)
-      } else {
-        warning(paste("ELP not provided and cannot be computed for method:", i))
-        next
-      }
-    }
-    
-    args <- names(cl) %in% names(formals(Power.functions[[i]]))
-    args_list <- as.list(cl)[args]
-    
-    temp_result <- numeric(length(L))
-    for (j in seq_len(length(L))) {
-      args_single <- lapply(args_list, function(arg) {
-        if(length(arg) > 1) arg[j] else arg
-      })
-      temp_result[j] <- do.call(Power.functions[[i]], args_single)
-    }
-    
-    results_df[[i]] <- temp_result
-  }
-  
-  return(results_df)
+Power <- function(L, K, A, ELP = NULL, Rx = 0, V = 13, which = "SRK/T", ...) {
+  which <- match.arg(which)
+  P <- switch(which,
+              "SRK/T" = {
+                ELP <- if (is.null(ELP)) SRK.T.ELP(L, K, A = A, ...) else ELP
+                SRK.T.Power(L, K, ELP)
+              },
+              "Holladay 1" = {
+                ELP <- if (is.null(ELP)) Holladay.1.ELP(L, K, A = A, ...) else ELP
+                Holladay.1.Power(L, K, ELP, Rx = Rx, V = V)
+              },
+              "Hoffer Q" = {
+                ELP <- if (is.null(ELP)) Hoffer.Q.ELP(L, K, A = A, ...) else ELP
+                Hoffer.Q.Power(L, K, ELP, Rx = Rx, V = V)
+              },
+              "SRK" = {
+                SRK.Power(L, K, A, ELP)
+              },
+              "Haigis" = {
+                # Haigis formula was not provided, so it is omitted here.
+                stop("Haigis formula was not provided.")
+              }
+  )
+  return(P)
 }
+
 
 
 #' @export

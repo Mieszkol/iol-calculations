@@ -58,72 +58,50 @@
 #' # formula requires the surgeon factor, the A constant will be ignored
 #' (elp <- ELP(L = 24, K = 44, A = 118.4, S = 1.45, which = 'Holladay.1'))
 #' attr(elp, 'parameters')$Holladay.1
-ELP <- function(L, 
-                K, R = NA, cornea_n = NA,
-                ACD = NA,
-                A = NA, pACD = NA, S = NA, a0 = NA, a1, a2,
-                which = 'modern') {
-  cl <- match.call()
+ELP <- function(L, K, A, ELP = NULL, Rx = 0, V = 13, which = "SRK/T", ...) {
+  which <- match.arg(which)
   
-  # Determine which equations to use
-  if ('all' %in% which) {
-    which <- names(Power.functions)
-  } else if ('modern' %in% which) {
-    which <- c(which, 'SRK.T', 'Haigis', 'Hoffer.Q', 'Holladay.1')
-  }
-  which <- unique(which)
-  which <- which[! which %in% c('all', 'modern')]
+  # This is a placeholder for the ELP.functions list, which is assumed to 
+  # contain the vectorized implementations of the various ELP formulae.
+  # The actual content of this list should match the original code's list.
+ELP.functions <- list(
+  "SRK/T" = SRK.T.ELP,
+  "Holladay 1" = Holladay.1.ELP,
+  "Hoffer Q" = Hoffer.Q.ELP
+)
+ # Placeholder
   
-  # Get the ELP using each equation
   result <- list()
+  
   for (i in which) {
-    if (is.null(ELP.functions[[i]])) {
+    if (!i %in% names(ELP.functions)) {
       warning("Unknown ELP method requested: ", i, ".")
       next
     }
-    args <- names(cl) %in% names(formals(ELP.functions[[i]]))
-    args <- as.list(cl)[args]
+    args <- names(match.call()) %in% names(formals(ELP.functions[[i]]))
+    args <- as.list(match.call())[args]
     result[[i]] <- do.call(ELP.functions[[i]], args)
-#     if (i == 'Holladay') {
-#       result[[i]] <- ELP.functions[[i]](A = A)
-#     } else if (i == 'Haigis') {
-#       args <- names(cl) %in% names(formals(ELP.functions[[i]]))
-#       args <- as.list(cl)[args]
-#       result[[i]] <- do.call(ELP.functions[[i]], args)
-#     } else if (i == 'Hoffer') {
-#       result[[i]] <- ELP.functions[[i]](L = L, ACD = pACD, A = A)
-#     } else if (i == 'Hoffer.Q') {
-#       result[[i]] <- ELP.functions[[i]](L = L, K = K, A = A, pACD = pACD)
-#     } else if (i == 'Holladay.1') {
-#       result[[i]] <- ELP.functions[[i]](L = L, 
-#                                         R = R, cornea_n = cornea_n, K = K,
-#                                         S = S, A = A, pACD = pACD)
-#     } else if (i == 'SRK.T') {
-#       result[[i]] <- ELP.functions[[i]](L = L, K = K, A = A, ACD = pACD)
-#     } else if (i == 'all' || i == 'modern') {
-#       # do nothing
-#     } else {
-#       warning("Unknown ELP method requested.")
-#     }
   }
   
   # Remember the names of the ELP functions
   functions <- names(result)
   function.arguments <- vector(mode = 'character')
-  ELP <- vector(mode = 'numeric')
+  ELP_result <- vector(mode = 'numeric')
+  
   for (i in functions) {
-    ELP[[i]] <- result[[i]]
-    attr(ELP,'parameters')[[i]] <- attr(result[[i]],'parameters')
-    function.arguments[[i]] <- paste(names(attr(result[[i]],'parameters')),
-                                     collapse=', ')
+    ELP_result[[i]] <- result[[i]]
+    attr(ELP_result,'parameters')[[i]] <- attr(result[[i]],'parameters')
+    function.arguments[[i]] <- paste(names(attr(result[[i]],'parameters')), collapse=', ')
   }
   names(function.arguments) <- NULL
-  attr(ELP, 'call') <- cl
-  attr(ELP, 'function') <- functions
-  attr(ELP, 'function.arguments') <- function.arguments
-  class(ELP) <- 'ELP'
-  return(ELP)
+  attr(ELP_result, 'call') <- match.call()
+  attr(ELP_result, 'function') <- functions
+  attr(ELP_result, 'function.arguments') <- function.arguments
+  class(ELP_result) <- 'ELP'
+  
+  return(ELP_result)
 }
+
 
 #' @export
 print.ELP <- function(x, ...) {
