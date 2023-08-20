@@ -24,3 +24,4 @@ SRK.Power <- function(L, K, A, ELP) {
   return(P)
 }
 Power.functions$SRK <- SRK.Power
+#' @export
