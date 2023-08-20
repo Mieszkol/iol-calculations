@@ -20,9 +20,10 @@
 #' @seealso \code{\link{ELP}}
 #' @family Power
 #' @author Eric N. Brown \email{eric.n.brown@@gmail.com}
-Power <- function(L, K, A, ELP, Rx = 0, V = 13, which = 'all') {
+Power <- function(L, K, A, ELP = NULL, Rx = 0, V = 13, which = 'all') {
   cl <- match.call()
-  result <- list()
+  
+  # Determine which equations to use
   if ('all' %in% which) {
     which <- names(Power.functions)
     which <- which[which != 'all']
@@ -32,48 +33,43 @@ Power <- function(L, K, A, ELP, Rx = 0, V = 13, which = 'all') {
     which <- which[which != 'modern']
   }
   which <- unique(which)
+  
+  results_df <- data.frame(matrix(nrow=length(L), ncol=length(which)))
+  colnames(results_df) <- which
+
   for (i in which) {
     if (is.null(Power.functions[[i]])) {
       warning("Unknown Power method requested: ", i, ".")
       next
     }
-    fct <- Power.functions[[i]]
-    args <- names(cl) %in% names(formals(fct))
-    args <- as.list(cl)[args]
-    result[[i]] <- do.call(fct, args)
-#     if (i %in% c('SRK', 'SRK.II')) {
-#       result[[i]] <- Power.functions[[i]](L = L, K = K, A = A)
-#     } else if (i %in% c('Colenbrander', 'Fyodorov', 'van.der.Heijde', 'Binkhorst', 
-#                         'Hoffer', 'Shammas', 'Binkhorst.adjusted',
-#                         'SRK.T')) {
-#       result[[i]] <- Power.functions[[i]](L = L, K = K, ELP = ELP)
-#     } else if (i %in% c('Holladay', 'Holladay.1', 'Hoffer.Q')) {
-#       result[[i]] <- Power.functions[[i]](L = L, K = K, ELP = ELP, Rx = Rx, V = V)
-#     } else {
-#       warning("Unknown IOL Power formula: '", i, "'")
-#     }
+    
+    # Check if ELP is missing and compute it if necessary
+    if (is.null(ELP) || is.na(ELP[1])) {
+      if (i %in% names(ELP.functions)) {
+        ELP <- ELP(L = L, K = K, A = A, which = i)
+      } else {
+        warning(paste("ELP not provided and cannot be computed for method:", i))
+        next
+      }
+    }
+    
+    args <- names(cl) %in% names(formals(Power.functions[[i]]))
+    args_list <- as.list(cl)[args]
+    
+    temp_result <- numeric(length(L))
+    for (j in seq_len(length(L))) {
+      args_single <- lapply(args_list, function(arg) {
+        if(length(arg) > 1) arg[j] else arg
+      })
+      temp_result[j] <- do.call(Power.functions[[i]], args_single)
+    }
+    
+    results_df[[i]] <- temp_result
   }
   
-  functions <- names(result)
-  function.arguments <- vector(mode = 'character')
-P <- numeric(length(L))
+  return(results_df)
+}
 
-for (i in which) {
-    if (is.null(Power.functions[[i]])) {
-      warning("Unknown Power method requested: ", i, ".")
-      next
-    }
-    fct <- Power.functions[[i]]
-    args <- names(cl) %in% names(formals(fct))
-    args <- as.list(cl)[args]
-    P <- do.call(fct, args)
-}
-  names(function.arguments) <- NULL
-  attr(P, 'function') <- functions
-  attr(P, 'function.arguments') <- function.arguments
-  class(P) <- 'Power'
-  return(P)
-}
 
 #' @export
 print.Power <- function(x, ...) {
