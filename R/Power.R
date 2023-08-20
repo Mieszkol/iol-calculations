@@ -56,13 +56,13 @@ Power <- function(L, K, A, ELP, Rx = 0, V = 13, which = 'all') {
   
   functions <- names(result)
   function.arguments <- vector(mode = 'character')
-  P <- list()
+P <- numeric(length(functions))
 
-for (i in functions) {
-    # Use list assignment to ensure P remains a list
-    P[i] <- list(result[[i]])
-    attr(P, 'parameters')[[i]] <- attr(result[[i]], 'parameters')
-    function.arguments[[i]] <- paste(names(attr(result[[i]], 'parameters')), collapse=', ')
+for (i in seq_along(functions)) {
+    func_name <- functions[i]
+    P[i] <- result[[func_name]]
+    attr(P, 'parameters')[[func_name]] <- attr(result[[func_name]], 'parameters')
+    function.arguments[[func_name]] <- paste(names(attr(result[[func_name]], 'parameters')), collapse=', ')
 }
   names(function.arguments) <- NULL
   attr(P, 'function') <- functions
