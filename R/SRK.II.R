@@ -12,7 +12,7 @@
 #' @family Power
 SRK.II.Power <- function(L, K, A, ELP) {
   args <- list(L = L, K = K)
-  if (missing(A) || ! is.finite(A)) {
+  if (missing(A) || !unique(is.finite(A))) {
     print(str(match.call()))
     A <- (ELP + 63.896) / 0.58357
     args$ELP <- ELP

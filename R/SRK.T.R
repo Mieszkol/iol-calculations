@@ -16,7 +16,7 @@
 SRK.T.ELP <- function(L, K=337.5/R, R=337.5/K, ACD, A) {
   args <- list(L = L, K = K)
   if (missing(ACD) || ! is.finite(ACD)) {
-    if (! missing(A) && is.finite(A)) {
+  if (missing(A) || !unique(is.finite(A))) {
       ACD <- 0.62467 * A - 68.747
       args$A <- A
       warning("Using SRK/T conversion from A constant to ACD: ", ACD, "mm")

@@ -34,7 +34,7 @@ Holladay.1.ELP <- function(L, R, K, cornea_n, S, A, pACD) {
     args$R <- R
   }
   if (missing(S) || ! is.finite(S)) {
-    if (! missing(A) && is.finite(A)) {
+  if (missing(A) || !unique(is.finite(A))) {
       S <- Constants$IOL$A_to_S_a0 + Constants$IOL$A_to_S_a1 * A
       args$A <- A
       warning("Using Holladay approximation for S from A constant for Holladay 1 equation: ", S, "mm")
