@@ -30,7 +30,7 @@ SRK.T.ELP <- function(L, K=337.5/R, R=337.5/K, ACD, A) {
   LCOR <- L
   LCOR[L > 24.2] <- -3.446 + 1.715 * L[L > 24.2] - 0.0237 * L[L > 24.2] * L[L > 24.2]
   # Computed corneal width (mm)
-Cw <- -5.41 + 0.58412 * L2 + 0.098 * K
+Cw <- -5.41 + 0.58412 * LCOR + 0.098 * K
 # Corneal height (mm)
 temp <- R * R - Cw * Cw / 4  
 
