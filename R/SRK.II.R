@@ -12,7 +12,7 @@
 #' @family Power
 SRK.II.Power <- function(L, K, A, ELP) {
   args <- list(L = L, K = K)
-  if (is.null(A) || all(!is.finite(A))) {
+  if (is.null(A) || all(is.finite(A))) {
     A <- (ELP + 63.896) / 0.58357
     args$ELP <- ELP
     warning("Using Holladay approximation for SRK II's A from ELP constant: ", A)
